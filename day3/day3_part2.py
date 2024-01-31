@@ -57,6 +57,7 @@ def test_range_condition():
     assert range_condition(number[0], 6) == False
     assert range_condition(number[0], 7) == False
 
+
 def special_char_connecting(number, prevLineSpecialCharIndices, currentLineSpecialCharIndices, nextLineSpecialCharIndices):
     connecting = False
     for specialCharPos in prevLineSpecialCharIndices:
@@ -87,11 +88,36 @@ def test_special_char_connecting():
     assert special_char_connecting(number[0], [5], [4], [9]) == False
     assert special_char_connecting(number[0], [6], [5], [10]) == False
 
+
+def numbers_connecting_star(placement, prevLineNumbers, currentLineNumbers, nextLineNumbers):
+    connecting = 0
+    for number in prevLineNumbers:
+        if range_condition(number, placement):
+            connecting += 1
+    for number in currentLineNumbers:
+        if range_condition(number, placement):
+            connecting += 1
+    for number in nextLineNumbers:
+        if range_condition(number, placement):
+            connecting += 1
+    return connecting
+
+def test_numbers_connecting_star():
+    prevLineNumbers =    find_numbers("467..114..")
+    currentLineNumbers = find_numbers("...*......")
+    nextLineNumbers =    find_numbers("..35..63..")
+    assert numbers_connecting_star(0, prevLineNumbers, currentLineNumbers, nextLineNumbers) == 1
+    assert numbers_connecting_star(1, prevLineNumbers, currentLineNumbers, nextLineNumbers) == 2
+    assert numbers_connecting_star(2, prevLineNumbers, currentLineNumbers, nextLineNumbers) == 2
+    assert numbers_connecting_star(3, prevLineNumbers, currentLineNumbers, nextLineNumbers) == 2
+    assert numbers_connecting_star(9, prevLineNumbers, currentLineNumbers, nextLineNumbers) == 0
+
 # Open the file in read mode
 with open('day3/input_day3.txt', 'r') as file:
 
     sum = 0
     lineNr = 0
+    prevLine = ""
     currentLine = ""
     nextLine = ""
     prevLineSpecialCharIndices = []
@@ -101,6 +127,7 @@ with open('day3/input_day3.txt', 'r') as file:
     # Iterate over each line in the file
     for line in file:
 
+        prevLine = currentLine
         currentLine = nextLine
         nextLine = line.strip()
         # print(currentLine) 
