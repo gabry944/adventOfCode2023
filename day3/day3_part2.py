@@ -4,10 +4,8 @@ import pytest
 def find_numbers(input_string):
     # Use regular expression to find all numbers
     matches = re.finditer(r'\d+', input_string)
-
     # Collect positions and numbers
     result = [(match) for match in matches]
-
     return result
 
 def test_find_numbers():
@@ -21,22 +19,6 @@ def test_find_numbers():
     assert result[1].group() == "114"
     result = find_numbers("...*......")
     assert len(result) == 0
-
-def find_special_char_indices(input_string):
-    special_char_indices = []
-
-    for i, char in enumerate(input_string):
-        if not char.isalnum() and char != '.':
-            special_char_indices.append(i)
-
-    return special_char_indices
-
-def test_find_special_char_indices():
-    result = find_special_char_indices("467..114..")
-    assert len(result) == 0
-    result = find_special_char_indices("...*......")
-    assert len(result) == 1
-    assert result[0] == 3
 
 def range_condition(number, specialCharPos):
     return specialCharPos >= max(number.start() - 1, 0) and specialCharPos <= number.end()
@@ -56,7 +38,6 @@ def test_range_condition():
     assert range_condition(number[0], 5) == True
     assert range_condition(number[0], 6) == False
     assert range_condition(number[0], 7) == False
-
 
 def special_char_connecting(number, prevLineSpecialCharIndices, currentLineSpecialCharIndices, nextLineSpecialCharIndices):
     connecting = False
@@ -88,63 +69,87 @@ def test_special_char_connecting():
     assert special_char_connecting(number[0], [5], [4], [9]) == False
     assert special_char_connecting(number[0], [6], [5], [10]) == False
 
-
-def numbers_connecting_star(placement, prevLineNumbers, currentLineNumbers, nextLineNumbers):
-    connecting = 0
+def numbers_connecting_star(starPlacement, prevLineNumbers, currentLineNumbers, nextLineNumbers):
+    numbers = []
     for number in prevLineNumbers:
-        if range_condition(number, placement):
-            connecting += 1
+        if range_condition(number, starPlacement):
+            numbers.append(number)
     for number in currentLineNumbers:
-        if range_condition(number, placement):
-            connecting += 1
+        if range_condition(number, starPlacement):
+            numbers.append(number)
     for number in nextLineNumbers:
-        if range_condition(number, placement):
-            connecting += 1
-    return connecting
+        if range_condition(number, starPlacement):
+            numbers.append(number)
+    return numbers
 
 def test_numbers_connecting_star():
     prevLineNumbers =    find_numbers("467..114..")
     currentLineNumbers = find_numbers("...*......")
     nextLineNumbers =    find_numbers("..35..63..")
-    assert numbers_connecting_star(0, prevLineNumbers, currentLineNumbers, nextLineNumbers) == 1
-    assert numbers_connecting_star(1, prevLineNumbers, currentLineNumbers, nextLineNumbers) == 2
-    assert numbers_connecting_star(2, prevLineNumbers, currentLineNumbers, nextLineNumbers) == 2
-    assert numbers_connecting_star(3, prevLineNumbers, currentLineNumbers, nextLineNumbers) == 2
-    assert numbers_connecting_star(9, prevLineNumbers, currentLineNumbers, nextLineNumbers) == 0
+
+    result = numbers_connecting_star(0, prevLineNumbers, currentLineNumbers, nextLineNumbers)
+    assert len(result) == 1
+    assert int(result[0].group()) == 467
+
+    result = numbers_connecting_star(1, prevLineNumbers, currentLineNumbers, nextLineNumbers)
+    assert len(result) == 2
+    assert int(result[0].group()) == 467
+    assert int(result[1].group()) == 35
+
+    result = numbers_connecting_star(2, prevLineNumbers, currentLineNumbers, nextLineNumbers)
+    assert len(result) == 2
+    assert int(result[0].group()) == 467
+    assert int(result[1].group()) == 35
+
+    result = numbers_connecting_star(3, prevLineNumbers, currentLineNumbers, nextLineNumbers)
+    assert len(result) == 2
+    assert int(result[0].group()) == 467
+    assert int(result[1].group()) == 35
+
+    result = numbers_connecting_star(9, prevLineNumbers, currentLineNumbers, nextLineNumbers)
+    assert len(result) == 0
+
+def find_stars(input_string):
+    starPlacements = []
+    for i, char in enumerate(input_string):
+        if char == '*':
+            starPlacements.append(i)
+    return starPlacements
+
+def test_find_stars():
+    result = find_stars("467..114..")
+    assert len(result) == 0
+    result = find_stars("...*......")
+    assert len(result) == 1
+    assert result[0] == 3
 
 # Open the file in read mode
 with open('day3/input_day3.txt', 'r') as file:
 
     sum = 0
-    lineNr = 0
-    prevLine = ""
     currentLine = ""
     nextLine = ""
-    prevLineSpecialCharIndices = []
-    currentLineSpecialCharIndices = []
-    nextLineSpecialCharIndices = []
+    prevLineNumbers = []
+    currentLineNumbers = []
+    nextLineNumbers = []
 
     # Iterate over each line in the file
     for line in file:
 
-        prevLine = currentLine
         currentLine = nextLine
         nextLine = line.strip()
-        # print(currentLine) 
 
-        prevLineSpecialCharIndices = currentLineSpecialCharIndices
-        currentLineSpecialCharIndices = nextLineSpecialCharIndices
-        nextLineSpecialCharIndices = find_special_char_indices(nextLine)
+        prevLineNumbers = currentLineNumbers
+        currentLineNumbers = nextLineNumbers
+        nextLineNumbers = find_numbers(nextLine)
 
-        numbers = find_numbers(currentLine)
-        # print("numbers: ", numbers)
+        stars = find_stars(currentLine)
 
-        for number in numbers:
-            # print("number: ", number, ", start: ", number.start(), ", end: ", number.end(), ", group: ", number.group())           
-            if special_char_connecting(number, prevLineSpecialCharIndices, currentLineSpecialCharIndices, nextLineSpecialCharIndices):
-                sum += int(number.group())
-
-        lineNr += 1
+        for star in stars:
+            adjentNumbers = numbers_connecting_star(star, prevLineNumbers, currentLineNumbers, nextLineNumbers)
+            if len(adjentNumbers) == 2:
+                gear_ratio = int(adjentNumbers[0].group()) * int(adjentNumbers[1].group())
+                sum += gear_ratio
     
     print("sum: ", sum)
 
