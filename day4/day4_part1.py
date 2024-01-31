@@ -86,3 +86,15 @@ def test_card_points():
     assert card_points("Card 5: 87 83 26 28 32 | 88 30 70 12 93 22 82 36") == 0
     assert card_points("Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11") == 0
 
+def test_input_day4():
+    with open('day4/test_input_day4.txt', 'r') as file:
+        sum = 0
+        for line in file:
+            sum += card_points(line)
+        assert sum == 13
+
+with open('day4/input_day4.txt', 'r') as file:
+    sum = 0
+    for line in file:
+        sum += card_points(line)
+    print("sum: ", sum)
