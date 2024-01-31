@@ -38,12 +38,61 @@ def test_find_special_char_indices():
     assert len(result) == 1
     assert result[0] == 3
 
+def range_condition(number, specialCharPos):
+    return specialCharPos >= max(number.start() - 1, 0) and specialCharPos <= number.end()
+
+def test_range_condition():
+    number = find_numbers("467...*...")
+    assert range_condition(number[0], 0) == True
+    assert range_condition(number[0], 3) == True
+    assert range_condition(number[0], 4) == False
+    assert range_condition(number[0], 10) == False
+    number = find_numbers("..374.*...")
+    assert range_condition(number[0], 0) == False
+    assert range_condition(number[0], 1) == True
+    assert range_condition(number[0], 2) == True
+    assert range_condition(number[0], 3) == True
+    assert range_condition(number[0], 4) == True
+    assert range_condition(number[0], 5) == True
+    assert range_condition(number[0], 6) == False
+    assert range_condition(number[0], 7) == False
+
+
+def special_char_connecting(number, prevLineSpecialCharIndices, currentLineSpecialCharIndices, nextLineSpecialCharIndices):
+    connecting = False
+    for specialCharPos in prevLineSpecialCharIndices:
+        if range_condition(number, specialCharPos):
+            connecting = True
+    for specialCharPos in currentLineSpecialCharIndices:
+        if range_condition(number, specialCharPos):
+            connecting = True
+    for specialCharPos in nextLineSpecialCharIndices:
+        if range_condition(number, specialCharPos):
+            connecting = True
+    return connecting
+
+def test_special_char_connecting():
+    number = find_numbers("467...*...")
+    assert special_char_connecting(number[0], [], [], []) == False
+    assert special_char_connecting(number[0], [0], [], []) == True
+    assert special_char_connecting(number[0], [], [3], []) == True
+    assert special_char_connecting(number[0], [], [], [4]) == False
+    assert special_char_connecting(number[0], [0], [3], []) == True
+    assert special_char_connecting(number[0], [0], [], [4]) == True
+    assert special_char_connecting(number[0], [], [3], [4]) == True
+    assert special_char_connecting(number[0], [0], [3], [4]) == True
+    assert special_char_connecting(number[0], [0], [3], [5]) == True
+    assert special_char_connecting(number[0], [0], [3], [6]) == True
+    assert special_char_connecting(number[0], [5], [4], [7]) == False
+    assert special_char_connecting(number[0], [5], [4], [8]) == False
+    assert special_char_connecting(number[0], [5], [4], [9]) == False
+    assert special_char_connecting(number[0], [6], [5], [10]) == False
+
 # Open the file in read mode
-with open('day3/test_input_day3.txt', 'r') as file:
+with open('day3/input_day3.txt', 'r') as file:
 
     sum = 0
     lineNr = 0
-    prevLine = ""
     currentLine = ""
     nextLine = ""
     prevLineSpecialCharIndices = []
@@ -53,44 +102,20 @@ with open('day3/test_input_day3.txt', 'r') as file:
     # Iterate over each line in the file
     for line in file:
 
-        prevLine = currentLine
         currentLine = nextLine
         nextLine = line.strip()
-        print(currentLine)  # strip() removes the newline character at the end of each line
+        # print(currentLine) 
 
         prevLineSpecialCharIndices = currentLineSpecialCharIndices
         currentLineSpecialCharIndices = nextLineSpecialCharIndices
-        nextLineSpecialCharIndices = find_special_char_indices(nextLine.strip())
-        print("special_char_indices: ", prevLineSpecialCharIndices)
-        print("special_char_indices: ", currentLineSpecialCharIndices)
-        print("special_char_indices: ", nextLineSpecialCharIndices)
+        nextLineSpecialCharIndices = find_special_char_indices(nextLine)
 
         numbers = find_numbers(currentLine)
-        print("numbers: ", numbers)
+        # print("numbers: ", numbers)
 
         for number in numbers:
-            add = False
-            print("number: ", number, ", start: ", number.start(), ", end: ", number.end(), ", group: ", number.group())
-            
-            for specialCharPos in prevLineSpecialCharIndices:
-                #print("prevSpecialCharPos: ", specialCharPos)
-                if specialCharPos >= max(number.start() - 1, 0) and specialCharPos <= number.end():
-                    add = True
-            for specialCharPos in currentLineSpecialCharIndices:
-                # print("currentSpecialCharPos: ", specialCharPos)
-                # print("max(number.start() - 1, 0) : ", max(number.start() - 1, 0))
-                # print("number.end(): ", number.end())
-                if specialCharPos >= max(number.start() - 1, 0) and specialCharPos <= number.end():
-                    add = True
-            for specialCharPos in nextLineSpecialCharIndices:
-                #print("nextSpecialCharPos: ", specialCharPos)
-                #print("max(number.start() - 1, 0) : ", max(number.start() - 1, 0))
-                #print("number.end(): ", number.end())
-                if specialCharPos >= max(number.start() - 1, 0) and specialCharPos <= number.end():
-                    add = True
-
-            if add == True:
-                print("add: ", int(number.group()))
+            # print("number: ", number, ", start: ", number.start(), ", end: ", number.end(), ", group: ", number.group())           
+            if special_char_connecting(number, prevLineSpecialCharIndices, currentLineSpecialCharIndices, nextLineSpecialCharIndices):
                 sum += int(number.group())
 
         lineNr += 1
