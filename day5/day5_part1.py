@@ -1,27 +1,6 @@
 import pytest
 import sys
 
-def add_to_convertion_table(input_string, source, destination):
-    destinationStart, sourceStart, rangeLength = map(int, input_string.split())
-    for i in range(rangeLength):
-        source.append(sourceStart + i)
-        destination.append(destinationStart + i)
-
-def test_add_to_convertion_table():
-    source = []
-    destination = []
-
-    input = "50 98 2"
-    add_to_convertion_table(input, source, destination)
-    assert source == [98, 99]
-    assert destination == [50, 51]
-    
-    input = "52 50 48"
-    add_to_convertion_table(input, source, destination)
-    assert source ==        [98, 99, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97]
-    assert destination ==   [50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
-
-   
 def read_seeds(input_string):
     seeds = []
     input = input_string.split(':')
@@ -33,12 +12,48 @@ def test_read_seeds():
     input = "seeds: 79 14 55 13"
     assert read_seeds(input) == [79, 14, 55, 13]
 
+def convert_nr(seed, convert_string):     
+    destinationStart, sourceStart, rangeLength = map(int, convert_string.split())
+    if seed >= sourceStart and seed < sourceStart + rangeLength:
+        seed = destinationStart + (seed - sourceStart)
+    return seed
 
-def read_ranges(lines):
+def test_convert_nr():
+    input = "50 98 2"
+    assert convert_nr(97, input) == 97
+    assert convert_nr(98, input) == 50
+    assert convert_nr(99, input) == 51
+    assert convert_nr(100, input) == 100
+
+    input = "52 50 48"
+    assert convert_nr(49, input) == 49
+    assert convert_nr(50, input) == 52
+    assert convert_nr(51, input) == 53
+    assert convert_nr(52, input) == 54
+    assert convert_nr(96, input) == 98
+    assert convert_nr(97, input) == 99
+    assert convert_nr(98, input) == 98
+
+def convert_seeds(seeds, convert_strings):
+    for i, seed in enumerate(seeds):
+        for convert_string in convert_strings:                    
+            seed = convert_nr(seed, convert_string)
+            if seed != seeds[i]: # test against old value to see if seed has been converted
+                print("Seed coverted from ", seeds[i], " to ", seed)
+                seeds[i] = seed
+                break
+    print("Seeds: ", seeds)
+    return seeds
+
+def test_convert_seeds():
+    seeds = [79, 14, 55, 13]
+    convert_strings = ["50 98 2", "52 50 48"]
+    seeds = convert_seeds(seeds, convert_strings)
+    assert seeds == [81, 14, 57, 13]
+
+def read_and_convert_seeds(lines):
     seeds = []
-    converters = []
-    source = []
-    destination = []           
+    converters = []         
 
     for i, line in enumerate(lines):
         if i == 0:
@@ -46,85 +61,38 @@ def read_ranges(lines):
         elif len(line.split(':')) == 2:
             continue
         elif line == "\n":
-            converters.append((source, destination))
-            source = []
-            destination = []
-        else:
-            add_to_convertion_table(line.strip(), source, destination)
-    converters.append((source, destination))
+            convert_seeds(seeds, converters)          
+            converters = []
+        else:            
+            converters.append(line.strip())
+    convert_seeds(seeds, converters)
 
-    return seeds, converters
+    return seeds
 
-def test_read_ranges():
+def test_read_and_convert_seeds():
     with open('day5/test_input_day5.txt', 'r') as file:
+        seeds = read_and_convert_seeds(file.readlines())
+        assert seeds == [82, 43, 86, 35]
 
-        seeds, converters = read_ranges(file.readlines())
-        # seeds = []
-        # converters = []
-        # source = []
-        # destination = []           
-
-        # lines = file.readlines()
-        # for i, line in enumerate(lines):
-        #     if i == 0:
-        #         seeds = read_seeds(line.strip())
-        #     elif len(line.split(':')) == 2:
-        #         continue
-        #     elif line == "\n":
-        #         converters.append((source, destination))
-        #         source = []
-        #         destination = []
-        #     else:
-        #         add_to_convertion_table(line.strip(), source, destination)
-        # converters.append((source, destination))
-
-        print(converters)
-        assert seeds == [79, 14, 55, 13]
-        assert converters[0] == ([], [])
-        assert converters[1][0] == [98, 99, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97]
-        assert converters[1][1] == [50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
-
-
-def test_seed_to_map():
+def test_day5_part1():
     with open('day5/test_input_day5.txt', 'r') as file:
-        seeds, converters = read_ranges(file.readlines())
+        seeds = read_and_convert_seeds(file.readlines())
 
         lowestLocation = sys.maxsize  
-        location = []
-        print(seeds)
-        print(converters)
+        print('seed: ', seeds)
 
         for seed in seeds:
-            for converter in converters:
-                if seed in converter[0]:
-                    index = converter[0].index(seed)
-                    seed = converter[1][index]
-                    print("Seed coverted from ",converter[0][index], " to ", seed)
-            location.append(seed)
             if(seed < lowestLocation):
                 lowestLocation = seed
                     
-        print(location)
-
-        assert location[0] == 82
-        assert location[1] == 43
-        assert location[2] == 86
-        assert location[3] == 35
+        assert lowestLocation == 35
 
 # Main Code
 with open('day5/input_day5.txt', 'r') as file:
-    seeds, converters = read_ranges(file.readlines())
+    seeds = read_and_convert_seeds(file.readlines())
 
     lowestLocation = sys.maxsize  
-    location = []
-    print("seeds: ", seeds)
-
     for seed in seeds:
-        for converter in converters:
-            if seed in converter[0]:
-                index = converter[0].index(seed)
-                seed = converter[1][index]
-        location.append(seed)
         if(seed < lowestLocation):
             lowestLocation = seed
                 
