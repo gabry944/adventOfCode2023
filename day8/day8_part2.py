@@ -1,4 +1,5 @@
 import pytest
+import math
 
 def read_file(lines):      
     instructions = []
@@ -40,28 +41,21 @@ def test_read_file():
         assert network["11B"] == ("XXX", "11Z")
         assert network["11Z"] == ("11B", "XXX")
         assert start == ["11A", "22A"]
-        
 
 def test_day8_part1():
     with open('day8/test_input_day8_part2.txt', 'r') as file:
         positions, instructions, network = read_file(file.readlines())
 
-        steps = 0
         stillSearching = True
+        steps = 0
+        instructions_length = len(instructions)
 
         while stillSearching:
-
-            stillSearching = False
-            
+            stillSearching = False        
             for i, position in enumerate(positions):
-                left, right = network[position]
-                print(f"Current: {position}, Left: {left}, Right: {right}")
-                if instructions[steps % len(instructions)] == 1:
-                    positions[i] = right
-                else:
-                    positions[i] = left
-
-                if positions[i][2] != "Z":
+                print(f"Step: {steps}, Position: {position}, Instruction: {instructions[steps % instructions_length]}")
+                positions[i] = network[position][instructions[steps % instructions_length]]
+                if stillSearching == False and positions[i][2] != "Z":
                     stillSearching = True
             steps += 1
         
@@ -69,25 +63,19 @@ def test_day8_part1():
 
 
 # Main Code
-# with open('day8/input_day8.txt', 'r') as file:
-#     positions, instructions, network = read_file(file.readlines())
-
-#     steps = 0
-#     stillSearching = True
-
-#     while stillSearching:
-
-#         stillSearching = False
-        
-#         for i, position in enumerate(positions):
-#             left, right = network[position]
-#             if instructions[steps % len(instructions)] == 1:
-#                 positions[i] = right
-#             else:
-#                 positions[i] = left
-
-#             if positions[i][2] != "Z":
-#                 stillSearching = True
-#         steps += 1        
+with open('day8/input_day8.txt', 'r') as file:
+    startPositions, instructions, network = read_file(file.readlines())
+    print("startPositions: ",len(startPositions), " : ", startPositions)
     
-#     print(f"Steps: {steps}")
+    steps = [0 for i in range(len(startPositions))]
+    instructions_length = len(instructions)
+
+    for i, startPosition in enumerate(startPositions):
+        position = startPosition
+        while position[2] != "Z":
+            position = network[position][instructions[steps[i] % instructions_length]]
+            steps[i] += 1
+    print(f"Steps: {steps}")
+
+    lcm = math.lcm(steps[0], steps[1], steps[2], steps[3], steps[4], steps[5])
+    print(f"lcm: {lcm}")
