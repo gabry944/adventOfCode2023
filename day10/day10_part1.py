@@ -1,34 +1,17 @@
 import pytest
 
 
-def continue_loop(position, pipe, direction, loopDict, lines):
-    print("position: ", position)
-    print("loopDict: ", loopDict)
-    print("lines: ", lines)
-
+def continue_loop(position, direction, lines):
     # direction is a tuple (row, column) that represents the direction traverse through the pipe -1, 0, 1
-    # next position (row, column)
-
-    nextPosition = (0, 0)
-    row = 0
-    column = 0
-
-    if pipe == "|":
-        row = position[0] + direction[0]
-        column = position[1]
+    # position is a tuple (row, column) that represents the current position in the loop
+    # lines is a list of strings that represents the map of the area
+    # pipe is a string that represents the current pipe at the position
+    pipe = lines[position[0]][position[1]]
     
-    if pipe == "-":
-        row = position[0]
-        column = position[1] + direction[1]
-
     if pipe == "L":
         if direction == (1, 0):
-            # row = position[0]
-            # column = position[1] + 1
             direction = (0, 1)
         elif direction == (0, -1):
-            # row = position[0] - 1 
-            # column = position[1]
             direction = (-1, 0)
         else:
             print("Error: direction: ", direction, " at pipe: ", pipe)
@@ -36,118 +19,79 @@ def continue_loop(position, pipe, direction, loopDict, lines):
 
     if pipe == "J":
         if direction == (1, 0):
-            # row = position[0] + 1
-            # column = position[1]
             direction = (0, -1)
         elif direction == (0, 1):
-            # row = position[0]
-            # column = position[1] -1
             direction = (-1, 0)
         else:
             print("Error: direction: ", direction, " at pipe: ", pipe)
             return False
 
     if pipe == "7":
-        if direction == (1, 0):
-            # row = position[0] + 1
-            # column = position[1]
-            direction = (0, 1)
-        elif direction == (0, -1):
-            # row = position[0] - 1
-            # column = position[1]
-            direction = (-1, 0)
+        if direction == (-1, 0):
+            direction = (0, -1)
+        elif direction == (0, 1):
+            direction = (1, 0)
         else:
             print("Error: direction: ", direction, " at pipe: ", pipe)
             return False
     
     if pipe == "F":
         if direction == (0, -1):
-            # row = position[0]
-            # column = position[1] - 1
             direction = (1, 0)
         elif direction == (-1, 0):
-            # row = position[0]
-            # column = position[1] + 1
-            direction = ( 0, 1)
+            direction = (0, 1)
         else:
             print("Error: direction: ", direction, " at pipe: ", pipe)
             return False
 
-            
+    # Next position (row, column)     
     nextPosition = (position[0] + direction[0], position[1] + direction[1])
-
-    loopDict[nextPosition] = loopDict[position] + 1
     
-    return nextPosition, lines[nextPosition[0]][nextPosition[1]], direction, loopDict
+    return nextPosition, direction
     
-    
-    # if position in loopDict:
-    #     print("position already in loopDict")
-    #     return loopDict[position], loopDict
-    
-    # return continue_loop((row, column), lines[row][column], direction, loopDict, lines)
 
 def test_continue_loop():
     with open('day10/test_input.txt', 'r') as file:
         lines = file.readlines()
         position = (2, 1)
-        pipe = "|"
         direction = (1, 0)
-        loopDict = {(1, 1) : 0, (2, 1) : 1}
-        nextPosition, nextPipe, nextDirection, loopDict = continue_loop(position, pipe, direction, loopDict, lines)
+        nextPosition, nextDirection = continue_loop(position, direction, lines)
         assert nextPosition == (3, 1)
-        assert nextPipe == "L"
+        assert lines[nextPosition[0]][nextPosition[1]] == "L"
         assert nextDirection == (1, 0)
-        assert loopDict[nextPosition] == 2
 
         position = nextPosition
-        pipe = nextPipe
         direction = nextDirection
-        nextPosition, nextPipe, nextDirection, loopDict = continue_loop(position, pipe, direction, loopDict, lines)
+        nextPosition, nextDirection = continue_loop(position, direction, lines)
         assert nextPosition == (3, 2)
-        assert nextPipe == "-"
+        assert lines[nextPosition[0]][nextPosition[1]] == "-"
         assert nextDirection == (0, 1)
-        assert loopDict[nextPosition] == 3
 
         position = nextPosition
-        pipe = nextPipe
         direction = nextDirection
-        nextPosition, nextPipe, nextDirection, loopDict = continue_loop(position, pipe, direction, loopDict, lines)
+        nextPosition, nextDirection = continue_loop(position, direction, lines)
         assert nextPosition == (3, 3)
-        assert nextPipe == "J"
+        assert lines[nextPosition[0]][nextPosition[1]] == "J"
         assert nextDirection == (0, 1)
-        assert loopDict[nextPosition] == 4
       
-def find_start(lines):   
-    loopDict = {}   
-
+def find_start(lines):
     for i, line in enumerate(lines):
-        print("line: ", line.strip())
         for j, char in enumerate(line):
-            # print("char: ", char)
             if char == 'S':
-                loopDict[(i, j)] = 0
-                print("pos: ", i, ", ", j)
-                print("loopDict: ", loopDict)
-                print("loopDict len:", len(loopDict))
-
-
-    for key, value in loopDict.items():
-        print(f"Key: {key}, Value: {value}")
-
-    return loopDict      
+                return (i, j)
+    print("Error: No start position found")
+    return False
 
 def test_find_start():
     with open('day10/test_input.txt', 'r') as file:
-        loopDict = find_start(file.readlines())
-        assert loopDict == {(1, 1) : 0}
+        startPos = find_start(file.readlines())
+        assert startPos == (1, 1)
 
     with open('day10/test_input2.txt', 'r') as file:
-        loopDict = find_start(file.readlines())
-        assert loopDict == {(2, 0) : 0}
+        startPos = find_start(file.readlines())
+        assert startPos == (2, 0)
 
 def find_start_paths(startPos, lines):
-
     # test in a cross pattern around the start point (look so that we don't test out of chart)
     # we assume that there is only 2 valid paths from the start point
     startPaths = []
@@ -190,9 +134,57 @@ def test_find_start_paths():
         startPaths = find_start_paths(startPos, lines)
         assert startPaths == [(3, 0), (2, 1)]
     
+def count_distance(startPaths, startPos, lines):
+    # loopDict is a dictionary of the loop, with the position as key and the length of the path to that position as value
+    loopDict = {startPos : 0, startPaths[0] : 1, startPaths[1] : 1}
+
+    position1 = startPaths[0]
+    direction1 = (position1[0] - startPos[0], position1[1] - startPos[1])
+    position2 = startPaths[1]
+    direction2 = (position2[0] - startPos[0], position2[1] - startPos[1])
+
+    while True:
+        nextPosition1, direction1 = continue_loop(position1, direction1, lines)
+        if nextPosition1 in loopDict:
+            # if position1 is already in loopDict we have closed the loop and is assumably at the furthest the distance from the start
+            return loopDict[nextPosition1]
+        else:
+            # As we know the next position already, add it to the loopDict for the next iteration
+            loopDict[nextPosition1] = loopDict[position1] + 1
+            position1 = nextPosition1
+
+        nextPosition2, direction2 = continue_loop(position2, direction2, lines)
+        if nextPosition2 in loopDict:
+            return loopDict[nextPosition2]
+        else:
+            loopDict[nextPosition2] = loopDict[position2] + 1
+            position2 = nextPosition2
 
 
+def test_count_distance():
+    with open('day10/test_input.txt', 'r') as file:
+        lines = file.readlines()
+        startPos = find_start(lines)
+        print("startPos: ", startPos)
+        assert startPos == (1, 1)
+        startPaths = find_start_paths(startPos, lines)
+        print("startPaths: ", startPaths)
+        assert len(startPaths) == 2
+        assert startPaths == [(2, 1), (1, 2)]
+        loopDict = {startPos : 0, startPaths[0] : 1, startPaths[1] : 1}
+        print("loopDict: ", loopDict)
+        assert loopDict == {(1, 1) : 0, (2, 1) : 1, (1, 2) : 1}
 
+        distance = count_distance(startPaths, startPos, lines)
+        assert distance == 4
+
+    with open('day10/test_input2.txt', 'r') as file:
+        lines = file.readlines()
+        startPos = find_start(lines)
+        startPaths = find_start_paths(startPos, lines)
+        distance = count_distance(startPaths, startPos, lines)
+        assert distance == 8
+    
 
 # Main Code
 # with open('day10/input.txt', 'r') as file:
