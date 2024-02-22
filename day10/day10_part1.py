@@ -1,6 +1,5 @@
 import pytest
 
-
 def continue_loop(position, direction, lines):
     # direction is a tuple (row, column) that represents the direction traverse through the pipe -1, 0, 1
     # position is a tuple (row, column) that represents the current position in the loop
@@ -16,8 +15,7 @@ def continue_loop(position, direction, lines):
         else:
             print("Error: direction: ", direction, " at pipe: ", pipe)
             return False
-
-    if pipe == "J":
+    elif pipe == "J":
         if direction == (1, 0):
             direction = (0, -1)
         elif direction == (0, 1):
@@ -25,17 +23,15 @@ def continue_loop(position, direction, lines):
         else:
             print("Error: direction: ", direction, " at pipe: ", pipe)
             return False
-
-    if pipe == "7":
+    elif pipe == "7":
         if direction == (-1, 0):
             direction = (0, -1)
         elif direction == (0, 1):
             direction = (1, 0)
         else:
             print("Error: direction: ", direction, " at pipe: ", pipe)
-            return False
-    
-    if pipe == "F":
+            return False    
+    elif pipe == "F":
         if direction == (0, -1):
             direction = (1, 0)
         elif direction == (-1, 0):
@@ -46,9 +42,7 @@ def continue_loop(position, direction, lines):
 
     # Next position (row, column)     
     nextPosition = (position[0] + direction[0], position[1] + direction[1])
-    
     return nextPosition, direction
-    
 
 def test_continue_loop():
     with open('day10/test_input.txt', 'r') as file:
@@ -159,8 +153,7 @@ def count_distance(startPaths, startPos, lines):
         else:
             loopDict[nextPosition2] = loopDict[position2] + 1
             position2 = nextPosition2
-
-
+            
 def test_count_distance():
     with open('day10/test_input.txt', 'r') as file:
         lines = file.readlines()
@@ -184,8 +177,11 @@ def test_count_distance():
         startPaths = find_start_paths(startPos, lines)
         distance = count_distance(startPaths, startPos, lines)
         assert distance == 8
-    
 
 # Main Code
-# with open('day10/input.txt', 'r') as file:
-#     read_file(file.readlines())
+with open('day10/input.txt', 'r') as file:
+    lines = file.readlines()
+    startPos = find_start(lines)
+    startPaths = find_start_paths(startPos, lines)
+    distance = count_distance(startPaths, startPos, lines)
+    print("The distance to the furthest point in the loop is: ", distance)
