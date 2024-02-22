@@ -146,6 +146,50 @@ def test_find_start():
         loopDict = find_start(file.readlines())
         assert loopDict == {(2, 0) : 0}
 
+def find_start_paths(startPos, lines):
+
+    # test in a cross pattern around the start point (look so that we don't test out of chart)
+    # we assume that there is only 2 valid paths from the start point
+    startPaths = []
+    if startPos[0] - 1 >= 0:    
+        up = lines[startPos[0]- 1][startPos[1]]
+        if up == "|" or up == "F" or up == "7":
+            startPaths.append((startPos[0] - 1, startPos[1]))
+    if startPos[0] + 1 < len(lines):
+        down = lines[startPos[0] + 1][startPos[1]]
+        if down == "|" or down == "L" or down == "J":
+            startPaths.append((startPos[0] + 1, startPos[1]))
+    if startPos[1] - 1 >= 0:
+        left = lines[startPos[0]][startPos[1] - 1]
+        if left == "-" or left == "L" or left == "F":
+            startPaths.append((startPos[0], startPos[1] - 1))
+    if startPos[1] + 1 < len(lines[0]): # all lines have the same length so it's okay to just check against the top line
+        right = lines[startPos[0]][startPos[1] + 1]
+        if right == "-" or right == "J" or right == "7":
+            startPaths.append((startPos[0], startPos[1] + 1))
+
+    return startPaths
+        
+def test_find_start_paths():
+    with open('day10/test_input.txt', 'r') as file:
+        lines = file.readlines()
+        startPos = (1, 1)
+
+        print("lines:      ", lines)
+        print("startPos:   ", startPos)
+        print("startRow  = ", lines[startPos[0]].strip())
+        print("startPipe = ", lines[startPos[0]][startPos[1]])
+
+        startPaths = find_start_paths(startPos, lines)
+        assert len(startPaths) == 2
+        assert startPaths == [(2, 1), (1, 2)]
+
+    with open('day10/test_input2.txt', 'r') as file:
+        lines = file.readlines()
+        startPos = (2, 0)
+        startPaths = find_start_paths(startPos, lines)
+        assert startPaths == [(3, 0), (2, 1)]
+    
 
 
 
