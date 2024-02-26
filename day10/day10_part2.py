@@ -1,11 +1,86 @@
 import pytest
 
-def continue_loop(position, direction, lines, insideDirection):
+def continue_loop(position, direction, lines):
     # direction is a tuple (row, column) that represents the direction traverse through the pipe -1, 0, 1
     # position is a tuple (row, column) that represents the current position in the loop
     # lines is a list of strings that represents the map of the area
     # pipe is a string that represents the current pipe at the position
     pipe = lines[position[0]][position[1]]
+    
+    if pipe == "L":
+        if direction == (1, 0):
+            direction = (0, 1)
+        elif direction == (0, -1):
+            direction = (-1, 0)
+        else:
+            print("Error: direction: ", direction, " at pipe: ", pipe)
+            return False
+    elif pipe == "J":
+        if direction == (1, 0):
+            direction = (0, -1)
+        elif direction == (0, 1):
+            direction = (-1, 0)
+        else:
+            print("Error: direction: ", direction, " at pipe: ", pipe)
+            return False
+    elif pipe == "7":
+        if direction == (-1, 0):
+            direction = (0, -1)
+        elif direction == (0, 1):
+            direction = (1, 0)
+        else:
+            print("Error: direction: ", direction, " at pipe: ", pipe)
+            return False    
+    elif pipe == "F":
+        if direction == (0, -1):
+            direction = (1, 0)
+        elif direction == (-1, 0):
+            direction = (0, 1)
+        else:
+            print("Error: direction: ", direction, " at pipe: ", pipe)
+            return False
+
+    # Next position (row, column)     
+    nextPosition = (position[0] + direction[0], position[1] + direction[1])
+    return nextPosition, direction
+
+def test_continue_loop():
+    with open('day10/test_input.txt', 'r') as file:
+        lines = file.readlines()
+        position = (2, 1)
+        direction = (1, 0)
+        insideDirection = "right"
+        nextPosition, nextDirection = continue_loop(position, direction, lines)
+        assert nextPosition == (3, 1)
+        assert lines[nextPosition[0]][nextPosition[1]] == "L"
+        assert nextDirection == (1, 0)
+
+        position = nextPosition
+        direction = nextDirection
+        nextPosition, nextDirection = continue_loop(position, direction, lines)
+        assert nextPosition == (3, 2)
+        assert lines[nextPosition[0]][nextPosition[1]] == "-"
+        assert nextDirection == (0, 1)
+
+        position = nextPosition
+        direction = nextDirection
+        nextPosition, nextDirection = continue_loop(position, direction, lines)
+        assert nextPosition == (3, 3)
+        assert lines[nextPosition[0]][nextPosition[1]] == "J"
+        assert nextDirection == (0, 1)
+
+        position = nextPosition
+        direction = nextDirection
+        nextPosition, nextDirection= continue_loop(position, direction, lines)
+        assert nextPosition == (2, 3)
+        assert lines[nextPosition[0]][nextPosition[1]] == "|"
+        assert nextDirection == (-1, 0)
+
+
+def get_inside(pipe, direction, insideDirection):
+    # direction is a tuple (row, column) that represents the direction traverse through the pipe -1, 0, 1
+    # pipe is a string that represents the current pipe at the position
+    # insideDirection is a string that represents the direction that faces inside the loop
     
     insideDirections = []
     nextInsideDirection = insideDirection
@@ -15,7 +90,6 @@ def continue_loop(position, direction, lines, insideDirection):
 
     if pipe == "L":
         if direction == (1, 0):
-            direction = (0, 1)
             if insideDirection == "right":
                 nextInsideDirection = "up"
             elif insideDirection == "left":
@@ -23,7 +97,6 @@ def continue_loop(position, direction, lines, insideDirection):
                 insideDirections.append("down")
                 nextInsideDirection = "down"
         elif direction == (0, -1):
-            direction = (-1, 0)
             if insideDirection == "up":
                 nextInsideDirection = "right"
             elif insideDirection == "down":
@@ -35,7 +108,6 @@ def continue_loop(position, direction, lines, insideDirection):
             return False
     elif pipe == "J":
         if direction == (1, 0):
-            direction = (0, -1)
             if insideDirection == "right":
                 insideDirections.append("right")
                 insideDirections.append("down")
@@ -43,7 +115,6 @@ def continue_loop(position, direction, lines, insideDirection):
             elif insideDirection == "left":
                 nextInsideDirection = "up"
         elif direction == (0, 1):
-            direction = (-1, 0)
             if insideDirection == "up":
                 nextInsideDirection = "left"
             elif insideDirection == "down":
@@ -55,7 +126,6 @@ def continue_loop(position, direction, lines, insideDirection):
             return False
     elif pipe == "7":
         if direction == (-1, 0):
-            direction = (0, -1)
             if insideDirection == "left":
                 nextInsideDirection = "down"
             elif insideDirection == "right":
@@ -63,7 +133,6 @@ def continue_loop(position, direction, lines, insideDirection):
                 insideDirections.append("up")
                 nextInsideDirection = "up"
         elif direction == (0, 1):
-            direction = (1, 0)
             if insideDirection == "down":
                 nextInsideDirection = "left"
             elif insideDirection == "up":
@@ -75,7 +144,6 @@ def continue_loop(position, direction, lines, insideDirection):
             return False    
     elif pipe == "F":
         if direction == (0, -1):
-            direction = (1, 0)
             if insideDirection == "down":
                 nextInsideDirection = "right"
             elif insideDirection == "up":
@@ -83,7 +151,6 @@ def continue_loop(position, direction, lines, insideDirection):
                 insideDirections.append("left")
                 nextInsideDirection = "left"
         elif direction == (-1, 0):
-            direction = (0, 1)
             if insideDirection == "right":
                 nextInsideDirection = "down"
             elif insideDirection == "left":
@@ -95,49 +162,37 @@ def continue_loop(position, direction, lines, insideDirection):
             return False
 
     # Next position (row, column)     
-    nextPosition = (position[0] + direction[0], position[1] + direction[1])
-    return nextPosition, direction, insideDirections, nextInsideDirection
+    return insideDirections, nextInsideDirection
 
-def test_continue_loop():
+def test_get_inside():
     with open('day10/test_input.txt', 'r') as file:
         lines = file.readlines()
         position = (2, 1)
         direction = (1, 0)
         insideDirection = "right"
-        nextPosition, nextDirection, insideDirections, nextInsideDirection = continue_loop(position, direction, lines, insideDirection)
-        assert nextPosition == (3, 1)
-        assert lines[nextPosition[0]][nextPosition[1]] == "L"
-        assert nextDirection == (1, 0)
+        pipe = lines[position[0]][position[1]]
+        insideDirections, nextInsideDirection = get_inside(pipe, direction, insideDirection)
         assert insideDirections == ["right"]
         assert nextInsideDirection == "right"
 
-        position = nextPosition
-        direction = nextDirection
-        insideDirection = nextInsideDirection
-        nextPosition, nextDirection, insideDirections, nextInsideDirection = continue_loop(position, direction, lines, insideDirection)
-        assert nextPosition == (3, 2)
-        assert lines[nextPosition[0]][nextPosition[1]] == "-"
-        assert nextDirection == (0, 1)
+        insideDirection = nextInsideDirection      
+        position, direction = continue_loop(position, direction, lines)
+        pipe = lines[position[0]][position[1]]
+        insideDirections, nextInsideDirection = get_inside(pipe, direction, insideDirection)
         assert insideDirections == []
         assert nextInsideDirection == "up"
 
-        position = nextPosition
-        direction = nextDirection
-        insideDirection = nextInsideDirection
-        nextPosition, nextDirection, insideDirections, nextInsideDirection = continue_loop(position, direction, lines, insideDirection)
-        assert nextPosition == (3, 3)
-        assert lines[nextPosition[0]][nextPosition[1]] == "J"
-        assert nextDirection == (0, 1)
+        insideDirection = nextInsideDirection      
+        position, direction = continue_loop(position, direction, lines)
+        pipe = lines[position[0]][position[1]]
+        insideDirections, nextInsideDirection = get_inside(pipe, direction, insideDirection)
         assert insideDirections == ["up"]
         assert nextInsideDirection == "up"
 
-        position = nextPosition
-        direction = nextDirection
-        insideDirection = nextInsideDirection
-        nextPosition, nextDirection, insideDirections, nextInsideDirection = continue_loop(position, direction, lines, insideDirection)
-        assert nextPosition == (2, 3)
-        assert lines[nextPosition[0]][nextPosition[1]] == "|"
-        assert nextDirection == (-1, 0)
+        insideDirection = nextInsideDirection      
+        position, direction = continue_loop(position, direction, lines)
+        pipe = lines[position[0]][position[1]]
+        insideDirections, nextInsideDirection = get_inside(pipe, direction, insideDirection)
         assert insideDirections == []
         assert nextInsideDirection == "left"
       
@@ -201,32 +256,32 @@ def test_find_start_paths():
         startPaths = find_start_paths(startPos, lines)
         assert startPaths == [(3, 0), (2, 1)]
 
-def get_start_pipe_and_closing_directions(direction1, direction2):
-    # OBS this will only work id the start position is in a turn (aka F,L,7,J)
+def get_start_pipe_and_possible_inside_directions(direction1, direction2):
+    # OBS this is a guess that are based on the turn of the start position but it might be the other way around
     if direction1 == (1, 0):
         if direction2 == (-1, 0):
-            return "-", 
+            return "-", "down", "down"
         elif direction2 == (0, 1):
             return "F", "right", "down"
         elif direction2 == (0, -1):
             return "7", "left", "down"
     elif direction1 == (-1, 0):
         if direction2 == (1, 0):
-            return "-"
+            return "-", "up", "up"
         elif direction2 == (0, 1):
             return "L", "right", "up"
         elif direction2 == (0, -1):
             return "J", "left", "up"
     elif direction1 == (0, 1):
         if direction2 == (0, -1):
-            return "|", 
+            return "|", "left", "left"
         elif direction2 == (1, 0):
             return "F", "down", "left"
         elif direction2 == (-1, 0):
             return "7", "up", "left"
     elif direction1 == (0, -1):
         if direction2 == (0, 1):
-            return "|"
+            return "|", "right", "right"
         elif direction2 == (1, 0):
             return "L" , "down", "right"
         elif direction2 == (-1, 0):
@@ -239,29 +294,27 @@ def get_loop(startPaths, startPos, lines):
     position2 = startPaths[1]
     direction2 = (position2[0] - startPos[0], position2[1] - startPos[1])
 
-    startPipe, insideDirection1, insideDirection2 = get_start_pipe_and_closing_directions(direction1, direction2)
+    startPipe, insideDirection1, insideDirection2 = get_start_pipe_and_possible_inside_directions(direction1, direction2)
 
     # loopDict is a dictionary of the loop, with the position as key and the pipe as value
     loopDict = {startPos : startPipe, startPaths[0] : lines[startPaths[0][0]][startPaths[0][1]], startPaths[1] : lines[startPaths[1][0]][startPaths[1][1]]}
 
     while True:
-        nextPosition1, direction1, insideDirections1, nextInsideDirection1 = continue_loop(position1, direction1, lines, insideDirection1)
+        nextPosition1, direction1= continue_loop(position1, direction1, lines)
         if nextPosition1 in loopDict:
             # if position1 is already in loopDict we have closed the loop and can return the loopDict
             return loopDict
         else:
             # As we know the next position already, add it to the loopDict for the next iteration
-            loopDict[nextPosition1] = lines[nextPosition1[0]][nextPosition1[1]]
+            loopDict[nextPosition1] = lines[nextPosition1[0]][nextPosition1[1]] 
             position1 = nextPosition1
-            insideDirection1 = nextInsideDirection1
 
-        nextPosition2, direction2, insideDirections2, nextInsideDirection2 = continue_loop(position2, direction2, lines, insideDirection2)
+        nextPosition2, direction2= continue_loop(position2, direction2, lines)
         if nextPosition2 in loopDict:
             return loopDict
         else:
             loopDict[nextPosition2] = lines[nextPosition2[0]][nextPosition2[1]]
             position2 = nextPosition2
-            insideDirection2 = nextInsideDirection2
             
 def test_get_loop():
     with open('day10/test_input.txt', 'r') as file:
@@ -287,114 +340,87 @@ def test_get_loop():
         print("loopDict: ", loopDict)
         assert loopDict == {(2, 0): 'F', (3, 0): '|', (2, 1): 'J', (4, 0): 'L', (1, 1): 'F', (4, 1): 'J', (1, 2): 'J', (3, 1): 'F', (0, 2): 'F', (3, 2): '-', (0, 3): '7', (3, 3): '-', (1, 3): '|', (3, 4): 'J', (2, 3): 'L', (2, 4): '7'}
 
+
+def add_tiles(position, insideDirections, loopDict, enclosedTilesDict, lines):
+    outsideOfLoop = False
+    for inside in insideDirections:
+        noWall = True
+        step = 1
+        tile = position
+        while noWall:
+            if inside == "up":
+                tile = (position[0] - step, position[1])
+            elif inside == "down":
+                tile = (position[0] + step, position[1])
+            elif inside == "left":
+                tile = (position[0], position[1] - step)
+            elif inside == "right":
+                tile = (position[0], position[1] + step)
+
+            if  tile[0] >= len(lines) or tile[1] >= len(lines[0]) or tile[0] < 0 or tile[1] < 0:
+                print("We are outside the map (", tile, ")")
+                OutsideOfLoop = True
+                return OutsideOfLoop, enclosedTilesDict
+
+            if tile in loopDict:
+                noWall = False
+            else:
+                enclosedTilesDict[tile] = 1
+                step += 1
+    return outsideOfLoop, enclosedTilesDict
+
+def follow_inside_of_loop(startPosition, direction, lines, insideDirection, loopDict):
+    position = startPosition
+    outsideOfLoop = False
+    enclosedTilesDict = {}
+
+    while True:
+        pipe = loopDict[position]
+        insideDirections, nextInsideDirection = get_inside(pipe, direction, insideDirection)
+        outsideOfLoop, enclosedTilesDict = add_tiles(position, insideDirections, loopDict, enclosedTilesDict, lines)
+        if outsideOfLoop:
+            return outsideOfLoop, len(enclosedTilesDict)
+
+        nextPosition, direction = continue_loop(position, direction, lines)
+        position = nextPosition
+        insideDirection = nextInsideDirection
+
+        nextPipe = lines[position[0]][position[1]]
+        if nextPipe == "S":
+            # We are back at the start position, check corresponding tiles and then return the result
+            pipe = loopDict[position] # convert the S to the corresponding pipe, that we added to the loopDict before
+            insideDirections, nextInsideDirection = get_inside(pipe, direction, insideDirection)
+            outsideOfLoop, enclosedTilesDict = add_tiles(position, insideDirections, loopDict, enclosedTilesDict, lines)
+            return outsideOfLoop, len(enclosedTilesDict)
+        
+def reverse_inside_direction(insideDirection):
+    if  insideDirection == "up":
+        return"down"
+    elif insideDirection == "down":
+        return "up"
+    elif insideDirection == "left":
+        return "right"
+    elif insideDirection == "right":
+        return"left"
+
 def count_enclosed_tiles(startPaths, startPos, lines, loopDict):
     position = startPaths[0]
     direction = (position[0] - startPos[0], position[1] - startPos[1])
-
     position2 = startPaths[1]
     direction2 = (position2[0] - startPos[0], position2[1] - startPos[1])
+    startPipe, insideDirection, insideDirection2 = get_start_pipe_and_possible_inside_directions(direction, direction2)
 
-    startPipe, insideDirection, insideDirection2 = get_start_pipe_and_closing_directions(direction, direction2)
-    print("startPipe: ", startPipe, ", insideDirection: ", insideDirection, ", insideDirection2: ", insideDirection2)
-
-    enclosedTilesDict = {}
-    runLoop = True
-
-    while runLoop:
-        nextPosition, direction, insideDirections, nextInsideDirection = continue_loop(position, direction, lines, insideDirection)
-
-        print("pipe: ", lines[position[0]][position[1]] , ", position: ", position, ", nextPosition: ", nextPosition, ", direction: ", direction, ", insideDirection: ", insideDirection, ", insideDirections: ", insideDirections)
-
-        for inside in insideDirections:
-            noWall = True
-            step = 1
-            tile = position
-            while noWall:
-                if inside == "up":
-                    tile = (position[0] - step, position[1])
-                elif inside == "down":
-                    tile = (position[0] + step, position[1])
-                elif inside == "left":
-                    tile = (position[0], position[1] - step)
-                elif inside == "right":
-                    tile = (position[0], position[1] + step)
-
-                if  tile[0] >= len(lines) or tile[1] >= len(lines[0]) or tile[0] < 0 or tile[1] < 0:
-                    noWall = False
-                    runLoop = False
-                    print("something went wrong, we are outside the map (", tile, "). Retry with inverted assumption about that is inside and outside the loop")
-
-                if tile in loopDict:
-                    noWall = False
-                else:
-                    enclosedTilesDict[tile] = 1
-                    step += 1
-                    print( "add to enclosedTilesDict: ", tile)            
-
-        position = nextPosition
-        insideDirection = nextInsideDirection
-        
-        if nextPosition == startPos:
-            # we have gone around the entire loop
-            return len(enclosedTilesDict)
-        
+    OutsideOfLoop, numberEnclosedTiles = follow_inside_of_loop(startPaths[0], direction, lines, insideDirection, loopDict)
 
     #retry with inverted assumption about that is inside and outside the loop
-    enclosedTilesDict = {}
-    position = startPaths[0]
-    direction = (position[0] - startPos[0], position[1] - startPos[1])
-    startPipe, insideDirection, insideDirection2 = get_start_pipe_and_closing_directions(direction, direction2)
-    if  insideDirection == "up":
-        insideDirection = "down"
-    elif insideDirection == "down":
-        insideDirection = "up"
-    elif insideDirection == "left":
-        insideDirection = "right"
-    elif insideDirection == "right":
-        insideDirection = "left"
-
-    runLoop = True
-    while runLoop:
-        nextPosition, direction, insideDirections, nextInsideDirection = continue_loop(position, direction, lines, insideDirection)
-
-        print("pipe: ", lines[position[0]][position[1]] , ", position: ", position, ", nextPosition: ", nextPosition, ", direction: ", direction, ", insideDirection: ", insideDirection, ", insideDirections: ", insideDirections)
-
-        for inside in insideDirections:
-            noWall = True
-            step = 1
-            tile = position
-            while noWall:
-                if inside == "up":
-                    tile = (position[0] - step, position[1])
-                elif inside == "down":
-                    tile = (position[0] + step, position[1])
-                elif inside == "left":
-                    tile = (position[0], position[1] - step)
-                elif inside == "right":
-                    tile = (position[0], position[1] + step)
-
-                if  tile[0] >= len(lines) or tile[1] >= len(lines[0]) or tile[0] < 0 or tile[1] < 0:
-                    noWall = False
-                    runLoop = False
-                    print("something went wrong, we are outside the map again: ", tile)
-                    return False
-
-                if tile in loopDict:
-                    noWall = False
-                else:
-                    enclosedTilesDict[tile] = 1
-                    step += 1
-                    print( "add to enclosedTilesDict: ", tile)            
-
-        position = nextPosition
-        insideDirection = nextInsideDirection
+    if OutsideOfLoop:
+        OutsideOfLoop, numberEnclosedTiles = follow_inside_of_loop(startPaths[0], direction, lines, reverse_inside_direction(insideDirection), loopDict)
         
-        if nextPosition == startPos:
-            # we have gone around the entire loop
-            return len(enclosedTilesDict)
-
-        
-
+    if OutsideOfLoop:
+        print("Something went wrong, we are outside the map again")
+        return False
+    else:
+        return numberEnclosedTiles
         
 def test_count_enclosed_tiles():
     with open('day10/test_input.txt', 'r') as file:
